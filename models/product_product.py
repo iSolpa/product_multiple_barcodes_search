@@ -24,13 +24,14 @@ class ProductProduct(models.Model):
         ]
     
     @api.model
-    def _name_search(self, name='', domain=None, operator='ilike', limit=None, order=None):
+    def _name_search(self, name='', args=None, operator='ilike', limit=100, order=None):
         """
         Override name search to support barcode searches including bracket format.
         Handles searches like "[1200161307829] ENERGEN LUX (9.5)" by extracting
         the barcode from brackets and searching in both main and additional barcodes.
+        Falls back to parent module's search which handles name, default_code, and barcodes.
         """
-        domain = domain or []
+        args = args or []
         
         # Try to extract barcode from bracket format [barcode]
         barcode_match = re.match(r'^\[([^\]]+)\]', name) if name else None
@@ -41,7 +42,7 @@ class ProductProduct(models.Model):
             
             # Search for products with this barcode in main barcode field
             products_by_main_barcode = self.search(
-                [('barcode', '=', barcode_value)] + domain,
+                [('barcode', '=', barcode_value)] + args,
                 limit=limit,
                 order=order
             )
@@ -51,7 +52,7 @@ class ProductProduct(models.Model):
                 ('name', '=', barcode_value)
             ])
             products_by_additional_barcode = self.search(
-                [('barcode_ids', 'in', additional_barcodes.ids)] + domain,
+                [('barcode_ids', 'in', additional_barcodes.ids)] + args,
                 limit=limit,
                 order=order
             )
@@ -66,7 +67,7 @@ class ProductProduct(models.Model):
         if name:
             # Try exact barcode match
             products_by_main_barcode = self.search(
-                [('barcode', '=', name)] + domain,
+                [('barcode', '=', name)] + args,
                 limit=limit,
                 order=order
             )
@@ -76,7 +77,7 @@ class ProductProduct(models.Model):
                 ('name', '=', name)
             ])
             products_by_additional_barcode = self.search(
-                [('barcode_ids', 'in', additional_barcodes.ids)] + domain,
+                [('barcode_ids', 'in', additional_barcodes.ids)] + args,
                 limit=limit,
                 order=order
             )
@@ -86,10 +87,10 @@ class ProductProduct(models.Model):
             if products:
                 return products.ids
         
-        # Fall back to standard name search
+        # Fall back to parent module's name search (handles name, default_code, barcodes)
         return super()._name_search(
             name=name,
-            domain=domain,
+            args=args,
             operator=operator,
             limit=limit,
             order=order
