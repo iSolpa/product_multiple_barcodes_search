@@ -6,22 +6,22 @@ class ProductProduct(models.Model):
 
     @api.model
     def _search(self, domain, *args, **kwargs):
-        for sub_domain in list(filter(lambda x: x[0] == "barcode", domain)):
-            domain = self._get_barcode_domain(sub_domain, domain)
+        domain = self._expand_barcode_domain(list(domain) if domain else [])
         return super()._search(domain, *args, **kwargs)
 
-    def _get_barcode_domain(self, sub_domain, domain):
-        barcode_operator = sub_domain[1]
-        barcode_value = sub_domain[2]
-        barcodes = self.env["product.barcode.multi"].search(
-            [("name", barcode_operator, barcode_value)]
-        )
-        return [
-            ("barcode_ids", "in", barcodes.ids)
-            if x[0] == "barcode" and x[2] == barcode_value
-            else x
-            for x in domain
-        ]
+    def _expand_barcode_domain(self, domain):
+        """
+        Expand barcode domain items to search in both main barcode AND additional barcodes.
+        Replaces ('barcode', op, val) with '|', ('barcode', op, val), ('barcode_ids', op, val)
+        """
+        new_domain = []
+        for item in domain:
+            if isinstance(item, (list, tuple)) and len(item) == 3 and item[0] == 'barcode':
+                # Add OR condition: main barcode OR additional barcodes
+                new_domain.extend(['|', item, ('barcode_ids', item[1], item[2])])
+            else:
+                new_domain.append(item)
+        return new_domain
     
     @api.model
     def _name_search(self, name='', args=None, operator='ilike', limit=100, order=None):
