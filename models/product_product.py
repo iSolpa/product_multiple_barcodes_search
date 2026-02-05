@@ -12,13 +12,14 @@ class ProductProduct(models.Model):
     def _expand_barcode_domain(self, domain):
         """
         Expand barcode domain items to search in both main barcode AND additional barcodes.
-        Replaces ('barcode', op, val) with '|', ('barcode', op, val), ('barcode_ids', op, val)
+        Replaces ('barcode', op, val) with '|', ('barcode', op, val), ('barcode_ids.name', op, val)
+        Uses dot notation to search by the 'name' field of product.barcode.multi, not by ID.
         """
         new_domain = []
         for item in domain:
             if isinstance(item, (list, tuple)) and len(item) == 3 and item[0] == 'barcode':
-                # Add OR condition: main barcode OR additional barcodes
-                new_domain.extend(['|', item, ('barcode_ids', item[1], item[2])])
+                # Add OR condition: main barcode OR additional barcodes (search by name field)
+                new_domain.extend(['|', item, ('barcode_ids.name', item[1], item[2])])
             else:
                 new_domain.append(item)
         return new_domain
