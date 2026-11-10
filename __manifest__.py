@@ -1,6 +1,6 @@
 {
     'name': 'Product Multiple Barcodes Search Enhancement',
-    'version': '17.0.1.4.0',
+    'version': '17.0.1.5.0',
     'category': 'Inventory',
     'summary': 'Enhances barcode search capabilities for multiple barcodes',
     'description': """
@@ -9,6 +9,9 @@
     """,
     'depends': [
         'product_multiple_barcodes',
+    ],
+    'data': [
+        'views/product_search_views.xml',
     ],
     'installable': True,
     'auto_install': False,

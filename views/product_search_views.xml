@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        product_multiple_barcodes replaces the "Product" search field on
+        product.template and drops ('default_code', 'ilike', self), so a
+        template whose internal reference is not contained in any variant
+        code (e.g. multi-size footwear with EAN variant codes) cannot be
+        found by its reference. Restore it, and let variants be found by
+        their template's reference as well.
+    -->
+    <record id="product_template_search_restore_default_code" model="ir.ui.view">
+        <field name="name">product.template.search.restore.default_code</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product_multiple_barcodes.product_barcode_multi_view_search"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='name']" position="attributes">
+                <attribute name="filter_domain">['|', '|', '|', '|', ('default_code', 'ilike', self), ('product_variant_ids.default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self), ('product_variant_ids.barcode_ids.name', 'ilike', self)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_product_search_template_default_code" model="ir.ui.view">
+        <field name="name">product.product.search.template.default_code</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product_multiple_barcodes.product_variant_barcode_multi_view_search"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="filter_domain">['|', '|', '|', '|', ('default_code', 'ilike', self), ('product_tmpl_id.default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self), ('barcode_ids.name', 'ilike', self)]</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
