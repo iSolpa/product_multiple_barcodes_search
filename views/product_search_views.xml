@@ -31,4 +31,21 @@
             </xpath>
         </field>
     </record>
+
+    <!--
+        Sale/purchase "Catalog" (add products from an order) uses its own
+        primary search view, which matches only the variant's own code.
+        Let it match the template's internal reference too.
+    -->
+    <record id="product_catalog_search_template_default_code" model="ir.ui.view">
+        <field name="name">product.catalog.search.template.default_code</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_view_search_catalog"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="filter_domain">['|', '|', '|', '|', ('default_code', 'ilike', self), ('product_tmpl_id.default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self), ('barcode_ids.name', 'ilike', self)]</attribute>
+            </xpath>
+        </field>
+    </record>
 </odoo>
